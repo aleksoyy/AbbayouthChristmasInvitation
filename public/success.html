@@ -1,0 +1,14 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Registrasi Berhasil | Abbayouth</title><link rel="stylesheet" href="/styles.css"></head>
+<body><main class="page-shell"><section class="panel success-panel">
+  <div class="success-icon">🎄</div><div class="eyebrow">Abbayouth Christmas Celebration</div>
+  <h1 class="success-title">Selamat! Registrasi Kamu Berhasil</h1>
+  <p class="success-copy">Terima kasih sudah melakukan registrasi. Sampai bertemu di perayaan Natal Abbayouth!</p>
+  <div class="ticket"><div class="ticket-label">YOUR LUCKY DRAW NUMBER</div><div class="ticket-number" id="number">---</div><div class="guest-name" id="guestName"></div></div>
+  <p class="success-copy">Simpan nomor undian ini dan tunjukkan kepada panitia jika diperlukan.</p>
+  <button class="btn btn-primary" onclick="location.href='/register'">SELESAI</button>
+</section></main>
+<script>
+const raw=sessionStorage.getItem("abbayouthRegistration");
+if(!raw){document.querySelector(".success-title").textContent="Registrasi tidak ditemukan";document.querySelector(".success-copy").textContent="Silakan kembali ke halaman registrasi jika kamu belum menyelesaikan pendaftaran.";document.querySelector(".ticket").classList.add("hidden");}
+else{const guest=JSON.parse(raw);document.getElementById("number").textContent=String(guest.lotteryNumber).padStart(3,"0");document.getElementById("guestName").textContent=guest.fullName;}
+</script></body></html>
