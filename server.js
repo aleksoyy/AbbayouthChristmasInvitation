@@ -72,7 +72,7 @@ const loginLimiter = rateLimit({
 const registrationSchema = z.object({
   fullName: z.string().trim().min(2).max(150),
   phoneNumber: z.string().trim().min(8).max(20).regex(/^(?:\+62|62|0)[0-9]{7,15}$/),
-  address: z.string().trim().min(3).max(1000),
+  address: z.string().trim().max(1000).optional().default(""),
   mentorName: z.string().trim().max(150).optional().default(""),
   churchName: z.string().trim().max(200).optional().default(""),
   informationSource: z.enum(["Instagram", "TikTok", "WhatsApp", "Teman / Keluarga", "Gereja", "Undangan", "Lainnya"]).optional().or(z.literal("")),

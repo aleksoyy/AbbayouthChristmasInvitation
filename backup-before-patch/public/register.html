@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Registrasi | Abbayouth Christmas</title><link rel="icon" type="image/png" href="/abbayouth-logo.png"><link rel="stylesheet" href="/styles.css"></head>
+<body><main class="page-shell"><section class="panel">
+  <header class="brand"><div class="brand-mark"><img src="/abbayouth-logo.png" alt="Logo Abbayouth" width="76" height="76"></div><div class="eyebrow">A Christmas Celebration</div><h1>Abbayouth Christmas</h1><div class="tagline">Hope Found Me</div><p>Welcome! Silakan lengkapi data diri kamu untuk melakukan registrasi.</p></header>
+  <div id="quota" class="alert info hidden"></div>
+  <form id="registrationForm">
+    <div class="form-grid">
+      <div class="field full"><label>Nama Lengkap <span class="required">*</span></label><input name="fullName" required minlength="2" maxlength="150" placeholder="Masukkan nama lengkap" autocomplete="name"></div>
+      <div class="field full"><label>Nomor Handphone <span class="required">*</span></label><input name="phoneNumber" required type="tel" maxlength="20" placeholder="Contoh: 081234567890" autocomplete="tel"><span class="hint">Gunakan format 08xxx atau +62xxx.</span></div>
+      <div class="field full"><label>Alamat <span class="required">*</span></label><textarea name="address" required minlength="3" maxlength="1000" placeholder="Masukkan alamat tempat tinggal"></textarea></div>
+      <div class="field"><label>Nama Pemurid</label><input name="mentorName" maxlength="150" placeholder="Nama pemurid (opsional)"></div>
+      <div class="field"><label>Gereja Asal</label><input name="churchName" maxlength="200" placeholder="Nama gereja (opsional)"><span class="hint">Kosongkan jika belum menjadi jemaat di suatu gereja.</span></div>
+      <div class="field full"><label>Kamu tahu info Abbayouth dari mana?</label><select name="informationSource" id="source"><option value="">Pilih sumber informasi</option><option>Instagram</option><option>TikTok</option><option>WhatsApp</option><option>Teman / Keluarga</option><option>Gereja</option><option>Undangan</option><option>Lainnya</option></select></div>
+      <div class="field full hidden" id="otherWrap"><label>Sumber informasi lainnya</label><input name="informationSourceOther" id="sourceOther" maxlength="200" placeholder="Tuliskan sumber informasi"></div>
+    </div>
+    <div id="message" class="alert"></div>
+    <button class="btn btn-primary" id="submitBtn" type="submit">DAFTAR SEKARANG</button>
+  </form>
+  <p class="fineprint">Data kamu digunakan untuk keperluan registrasi Event Natal Abbayouth.</p>
+</section></main>
+<script src="/register.js"></script></body></html>

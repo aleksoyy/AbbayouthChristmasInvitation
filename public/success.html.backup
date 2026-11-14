@@ -1,14 +1,40 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Registrasi Berhasil | Abbayouth</title><link rel="stylesheet" href="/styles.css"></head>
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Registrasi Berhasil | Abbayouth</title><link rel="stylesheet" href="/styles.css?v=20261114-2"></head>
 <body><main class="page-shell"><section class="panel success-panel">
   <div class="success-icon">🎄</div><div class="eyebrow">Abbayouth Christmas · Hope Found Me</div>
   <h1 class="success-title">Selamat! Registrasi Kamu Berhasil</h1>
-  <p class="success-copy">Terima kasih sudah melakukan registrasi. Sampai bertemu di perayaan Natal Abbayouth!</p>
-  <div class="ticket"><div class="ticket-label">YOUR LUCKY DRAW NUMBER</div><div class="ticket-number" id="number">---</div><div class="guest-name" id="guestName"></div></div>
-  <p class="success-copy">Simpan nomor undian ini dan tunjukkan kepada panitia jika diperlukan.</p>
+  <p class="success-copy">Terima kasih sudah melakukan registrasi.</p>
+  <div class="ticket"><div class="ticket-label">Your Agent Code Is</div><div class="ticket-number" id="number">---</div><div class="guest-name" id="guestName"></div></div>
+  <p class="success-instruction" role="note" style="background-color:#B42332;color:#FFFFFF;padding:18px 20px;border-radius:12px;font-weight:800;line-height:1.55;font-size:16px;text-align:center;margin:24px 0;box-shadow:0 5px 16px rgba(180,35,50,.20);">Screenshot &amp; Simpan Bukti Registrasi untuk Claim Entry Wristband (Penukaran Souvenir &amp; Photobooth)</p>
   <button class="btn btn-primary" onclick="location.href='/register'">SELESAI</button>
 </section></main>
 <script>
-const raw=sessionStorage.getItem("abbayouthRegistration");
-if(!raw){document.querySelector(".success-title").textContent="Registrasi tidak ditemukan";document.querySelector(".success-copy").textContent="Silakan kembali ke halaman registrasi jika kamu belum menyelesaikan pendaftaran.";document.querySelector(".ticket").classList.add("hidden");}
-else{const guest=JSON.parse(raw);document.getElementById("number").textContent=String(guest.lotteryNumber).padStart(3,"0");document.getElementById("guestName").textContent=guest.fullName;}
+(async () => {
+  const title = document.querySelector(".success-title");
+  const description = document.querySelector(".success-copy");
+  const ticket = document.querySelector(".ticket");
+  const showGuest = guest => {
+    document.getElementById("number").textContent = String(guest.lotteryNumber).padStart(3, "0");
+    document.getElementById("guestName").textContent = guest.fullName;
+    ticket.classList.remove("hidden");
+    title.textContent = "Registrasi Kamu Berhasil";
+  };
+  ticket.classList.add("hidden");
+  try {
+    const response = await fetch("/api/public/my-registration", { cache: "no-store" });
+    if (response.ok) {
+      const data = await response.json();
+      showGuest(data.guest);
+      sessionStorage.setItem("abbayouthRegistration", JSON.stringify(data.guest));
+    } else if (response.status === 404) {
+      sessionStorage.removeItem("abbayouthRegistration");
+      title.textContent = "Registrasi tidak ditemukan";
+      description.textContent = "Belum ada registrasi aktif untuk browser ini. Silakan lakukan registrasi.";
+    } else {
+      throw new Error("Gagal memuat data registrasi.");
+    }
+  } catch (error) {
+    title.textContent = "Data registrasi belum dapat ditampilkan";
+    description.textContent = "Silakan coba lagi saat koneksi tersedia. Nomor undian tidak berubah.";
+  }
+})();
 </script></body></html>

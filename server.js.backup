@@ -51,6 +51,8 @@ function ensureDevice(req, res, next) {
 app.use("/register", ensureDevice);
 app.use("/api/register", ensureDevice);
 app.use("/api/public/status", ensureDevice);
+app.use("/api/public/my-registration", ensureDevice);
+app.use("/success", ensureDevice);
 app.use(express.static(path.join(__dirname, "public")));
 
 const registrationLimiter = rateLimit({
@@ -106,6 +108,23 @@ app.get("/api/public/status", async (_req, res) => {
   ]);
   const alreadyRegistered = Boolean(await prisma.guest.findUnique({ where: { deviceId: _req.deviceId }, select: { id: true } }));
   res.json({ full: available === 0, alreadyRegistered });
+});
+
+// Return only the registration tied to this browser's signed, HttpOnly cookie.
+// Never accept a guest ID or ticket number from the client.
+app.get("/api/public/my-registration", async (req, res) => {
+  try {
+    const guest = await prisma.guest.findUnique({
+      where: { deviceId: req.deviceId },
+      select: { fullName: true, lotteryNumber: true, registeredAt: true }
+    });
+    res.set("Cache-Control", "no-store");
+    if (!guest) return res.status(404).json({ registered: false });
+    return res.json({ registered: true, guest });
+  } catch (error) {
+    console.error("My registration lookup error:", error);
+    return res.status(500).json({ error: "Tidak dapat memeriksa registrasi." });
+  }
 });
 
 app.post("/api/register", registrationLimiter, async (req, res) => {
