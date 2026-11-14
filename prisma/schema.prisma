@@ -32,6 +32,7 @@ model Guest {
   informationSource      String?
   informationSourceOther String?
   submissionToken        String   @unique
+  deviceId               String?  @unique
   registeredAt           DateTime @default(now())
   lottery                 LotteryNumber @relation(fields: [lotteryNumber], references: [number])
 

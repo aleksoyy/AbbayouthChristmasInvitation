@@ -27,12 +27,5 @@
   "devDependencies": {
     "prisma": "^6.19.0"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "allowScripts": {
-    "@prisma/client@6.19.3": true,
-    "prisma@6.19.3": true,
-    "@prisma/engines@6.19.3": true
-  }
+  "engines": { "node": ">=20.0.0" }
 }

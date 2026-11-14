@@ -6,15 +6,60 @@ function showLogin(){dashboardView.classList.add("hidden");loginView.classList.r
 function showDashboard(name){loginView.classList.add("hidden");dashboardView.classList.remove("hidden");document.getElementById("adminName").textContent=name||"Admin";loadAll();}
 async function checkSession(){try{const r=await api("/api/admin/me");if(r.ok){const d=await r.json();showDashboard(d.username);}}catch{}}
 loginForm.addEventListener("submit",async e=>{e.preventDefault();loginError.className="alert";const data=Object.fromEntries(new FormData(loginForm));try{const r=await api("/api/admin/login",{method:"POST",body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw new Error(d.error);showDashboard(d.username);}catch(err){loginError.textContent=err.message;loginError.className="alert error";}});
-async function loadStats(){const r=await api("/api/admin/dashboard");if(!r.ok)throw new Error("Gagal memuat dashboard");const d=await r.json();document.getElementById("registered").textContent=d.registered;document.getElementById("available").textContent=d.available;document.getElementById("used").textContent=d.used;document.getElementById("progressText").textContent=d.progress+"%";document.getElementById("progressBar").style.width=d.progress+"%";}
+async function loadStats(){const r=await api("/api/admin/dashboard");if(!r.ok)throw new Error("Gagal memuat dashboard");const d=await r.json();document.getElementById("registered").textContent=d.capacity;document.getElementById("available").textContent=d.available;document.getElementById("used").textContent=d.used;document.getElementById("progressText").textContent=d.progress+"%";document.getElementById("progressBar").style.width=d.progress+"%";document.getElementById("ticketCapacity").value=d.capacity;
+const warning=document.getElementById("guestSyncWarning");
+if(warning){warning.textContent=d.outOfSync?"Status nomor tidak sesuai dengan data Guest. Klik SINKRONKAN JUMLAH GUEST untuk memperbaiki.":"";warning.classList.toggle("hidden",!d.outOfSync);}
+}
 function dateWib(value){return new Intl.DateTimeFormat("id-ID",{dateStyle:"medium",timeStyle:"medium",timeZone:"Asia/Jakarta"}).format(new Date(value));}
 async function loadGuests(){const params=new URLSearchParams({page,pageSize:20,search:document.getElementById("search").value,from:document.getElementById("from").value,to:document.getElementById("to").value,sort:document.getElementById("sort").value,direction:document.getElementById("direction").value});const r=await api("/api/admin/guests?"+params);if(!r.ok)throw new Error("Gagal memuat data");const d=await r.json();totalPages=d.totalPages;document.getElementById("totalLabel").textContent=d.total+" data";document.getElementById("pageInfo").textContent=`Halaman ${d.page} dari ${d.totalPages}`;document.getElementById("prevBtn").disabled=page<=1;document.getElementById("nextBtn").disabled=page>=totalPages;
 const tbody=document.getElementById("guestRows");tbody.innerHTML="";
-if(!d.guests.length){tbody.innerHTML='<tr><td colspan="9">Belum ada data registrasi.</td></tr>';return;}
-d.guests.forEach((g,i)=>{const tr=document.createElement("tr");const vals=[(page-1)*20+i+1,null,g.fullName,g.phoneNumber,g.address,g.mentorName||"—",g.churchName||"—",[g.informationSource||"—",g.informationSourceOther||""].filter(Boolean).join(" — "),dateWib(g.registeredAt)];vals.forEach((v,j)=>{const td=document.createElement("td");if(j===1){const pill=document.createElement("span");pill.className="lottery-pill";pill.textContent=String(g.lotteryNumber).padStart(3,"0");td.append(pill);}else td.textContent=v;tr.append(td);});tbody.append(tr);});}
+if(!d.guests.length){tbody.innerHTML='<tr><td colspan="10">Belum ada data registrasi.</td></tr>';return;}
+d.guests.forEach((g,i)=>{const tr=document.createElement("tr");const vals=[(page-1)*20+i+1,null,g.fullName,g.phoneNumber,g.address,g.mentorName||"—",g.churchName||"—",[g.informationSource||"—",g.informationSourceOther||""].filter(Boolean).join(" — "),dateWib(g.registeredAt)];vals.forEach((v,j)=>{const td=document.createElement("td");if(j===1){const pill=document.createElement("span");pill.className="lottery-pill";pill.textContent=String(g.lotteryNumber).padStart(3,"0");td.append(pill);}else td.textContent=v;tr.append(td);});const action=document.createElement("td");const remove=document.createElement("button");remove.type="button";remove.className="btn-delete";remove.textContent="Hapus";remove.setAttribute("aria-label",`Hapus registrasi ${g.fullName}`);remove.addEventListener("click",()=>deleteGuest(g,remove));action.append(remove);tr.append(action);tbody.append(tr);});}
+async function deleteGuest(guest,button){
+  const number=String(guest.lotteryNumber).padStart(3,"0");
+  if(!confirm(`Hapus data registrasi ${guest.fullName} (nomor undian ${number})?\n\nData pribadi akan dihapus permanen dari daftar dan Excel. Nomor undian ${number} akan dikembalikan ke tiket tersedia dan dapat diberikan kepada tamu lain. Pastikan tiket lama sudah dibatalkan.`))return;
+  button.disabled=true;
+  try{
+    const r=await api(`/api/admin/guests/${encodeURIComponent(guest.id)}`,{method:"DELETE"});
+    const result=await r.json();
+    if(!r.ok)throw new Error(result.error||"Gagal menghapus data");
+    const notice=document.getElementById("deleteMessage");
+    notice.textContent=`Data ${guest.fullName} dihapus. Tiket nomor ${number} sudah dikembalikan dan dapat digunakan kembali.`;
+    notice.classList.remove("hidden");
+    await loadAll();
+  }catch(err){alert(err.message);button.disabled=false;}
+}
 async function loadAll(){try{await Promise.all([loadStats(),loadGuests()]);}catch(e){console.error(e);}}
 document.getElementById("filterBtn").onclick=()=>{page=1;loadGuests();};document.getElementById("search").addEventListener("keydown",e=>{if(e.key==="Enter"){page=1;loadGuests();}});document.getElementById("prevBtn").onclick=()=>{if(page>1){page--;loadGuests();}};document.getElementById("nextBtn").onclick=()=>{if(page<totalPages){page++;loadGuests();}};document.getElementById("refreshBtn").onclick=loadAll;
 document.getElementById("exportBtn").onclick=async()=>{try{const r=await api("/api/admin/export");if(!r.ok)throw new Error("Export gagal");const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="Abbayouth_Christmas_Registration.xlsx";a.click();URL.revokeObjectURL(url);}catch(e){alert(e.message);}};
 document.getElementById("logoutBtn").onclick=async()=>{await api("/api/admin/logout",{method:"POST"});showLogin();};
 document.getElementById("qrBtn").onclick=async()=>{const r=await api("/api/admin/qr");if(!r.ok)return alert("QR tidak dapat dibuat");const blob=await r.blob();document.getElementById("qrImage").src=URL.createObjectURL(blob);document.getElementById("qrModal").classList.remove("hidden");};document.getElementById("closeQr").onclick=()=>document.getElementById("qrModal").classList.add("hidden");
 checkSession();
+
+function settingsNotice(message){const el=document.getElementById("lotterySettingsMessage");el.textContent=message;el.classList.remove("hidden");}
+document.getElementById("saveCapacityBtn").addEventListener("click",async()=>{
+  const input=document.getElementById("ticketCapacity");const capacity=Number(input.value);
+  if(!Number.isInteger(capacity)||capacity<1||capacity>100000)return alert("Masukkan kapasitas guest antara 1 dan 100.000.");
+  if(!confirm(`Ubah kapasitas guest menjadi ${capacity}?`))return;
+  const button=document.getElementById("saveCapacityBtn");button.disabled=true;
+  try{const r=await api("/api/admin/lottery/capacity",{method:"PUT",body:JSON.stringify({capacity})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Gagal mengubah kapasitas guest.");settingsNotice(`Kapasitas guest berhasil diatur menjadi ${d.capacity}.`);await loadStats();}catch(e){alert(e.message);}finally{button.disabled=false;}
+});
+document.getElementById("resetLotteryBtn").addEventListener("click",async()=>{
+  if(!confirm("PERINGATAN: Semua data pengunjung akan DIHAPUS PERMANEN, seluruh nomor undian dilepas, dan nomor undian lama tidak berlaku. Sudah backup database dan Excel?"))return;
+  const confirmation=prompt('Untuk mengonfirmasi, ketik persis: RESET PESERTA');
+  if(confirmation!=="RESET PESERTA")return alert("Reset dibatalkan.");
+  const button=document.getElementById("resetLotteryBtn");button.disabled=true;
+  try{const r=await api("/api/admin/lottery/reset",{method:"POST",body:JSON.stringify({confirmation})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Reset gagal.");settingsNotice(`Reset selesai: ${d.deletedRegistrations} registrasi dihapus, ${d.capacity} kuota guest tersedia kembali.`);page=1;await loadAll();}catch(e){alert(e.message);}finally{button.disabled=false;}
+});
+
+// Explicit non-destructive reconciliation: never deletes guest registrations.
+document.getElementById("reconcileGuestsBtn").addEventListener("click",async()=>{
+  if(!confirm("Sinkronkan status nomor undian dengan data Guest yang tersimpan? Nomor tanpa Guest akan dikembalikan ke kuota tersedia. Data Guest tidak akan dihapus."))return;
+  const btn=document.getElementById("reconcileGuestsBtn");btn.disabled=true;
+  try{
+    const r=await api("/api/admin/guests/reconcile",{method:"POST",body:"{}"});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||"Sinkronisasi gagal.");
+    settingsNotice(`Sinkronisasi selesai: ${d.released} nomor tanpa Guest dilepas, ${d.restored} nomor Guest dipulihkan.`);
+    await loadAll();
+  }catch(e){alert(e.message);}finally{btn.disabled=false;}
+});
