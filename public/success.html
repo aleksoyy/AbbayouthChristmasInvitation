@@ -1,9 +1,9 @@
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Registrasi Berhasil | Abbayouth</title><link rel="stylesheet" href="/styles.css?v=20261114-3"></head>
 <body><main class="page-shell"><section class="panel success-panel">
-  <div class="success-check" aria-label="Registrasi berhasil"><svg viewBox="0 0 64 64" width="76" height="76" role="img" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="currentColor" stroke-width="4"/><path d="M19 32l9 9 18-20" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="eyebrow">Abbayouth Christmas · Hope Found Me</div>
-  <h1 class="success-title">REGISTRASI BERHASIL!</h1>
+  <div class="success-check" aria-label="REGISTRATION SUCCESS!"><svg viewBox="0 0 64 64" width="76" height="76" role="img" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="currentColor" stroke-width="4"/><path d="M19 32l9 9 18-20" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="eyebrow">Abbayouth Christmas · Hope Found Me</div>
+  <h1 class="success-title">REGISTRATION SUCCESS!</h1>
   <p class="success-copy">Terima kasih sudah melakukan registrasi.</p>
-  <div class="ticket"><div class="ticket-label">Here is Your Lucky Draw Number</div><div class="ticket-number" id="number">---</div><div class="participant-label">NAMA PESERTA</div><div class="guest-name" id="guestName"></div></div>
+  <div class="ticket"><div class="ticket-label">Your Lucky Draw Number</div><div class="ticket-number" id="number">---</div><!-- <div class="participant-label">NAMA PESERTA</div> --><div class="guest-name" id="guestName"></div></div>
   <div class="success-instruction" role="note" style="background-color:#B42332;color:#FFFFFF;padding:22px 20px;border-radius:14px;text-align:center;margin:24px 0;box-shadow:0 5px 16px rgba(180,35,50,.20);">
     <svg class="camera-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="4"/></svg>
     <div class="notice-title">JANGAN LUPA!</div>
@@ -21,7 +21,7 @@
     document.getElementById("number").textContent = String(guest.lotteryNumber).padStart(3, "0");
     document.getElementById("guestName").textContent = guest.fullName;
     ticket.classList.remove("hidden");
-    title.textContent = "REGISTRASI BERHASIL!";
+    title.textContent = "REGISTRATION SUCCESS!";
   };
   ticket.classList.add("hidden");
   try {

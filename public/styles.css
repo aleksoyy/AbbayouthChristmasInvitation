@@ -35,3 +35,52 @@
 .success-instruction p{font-size:15px;font-weight:600;line-height:1.6;margin:8px 0;color:#fff}
 .success-instruction strong{font-weight:800}
 @media(max-width:480px){.success-instruction .notice-title{font-size:19px}.success-instruction p{font-size:14px}}
+
+
+/* Label Agent Code */
+.ticket-label {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+/* Nomor Agent Code */
+.ticket-number {
+    font-size: 100px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+/* Label Nama Peserta */
+.participant-label {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 20px;
+}
+
+/* Nama Peserta */
+.guest-name {
+    font-size: 32px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+/* Responsive untuk HP */
+@media (max-width: 600px) {
+    .ticket-label {
+        font-size: 18px;
+    }
+
+    .ticket-number {
+        font-size: 72px;
+    }
+
+    .participant-label {
+        font-size: 20px;
+    }
+
+    .guest-name {
+        font-size: 26px;
+        overflow-wrap: anywhere;
+    }
+}
