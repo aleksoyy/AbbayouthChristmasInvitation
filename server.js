@@ -461,8 +461,10 @@ app.post("/api/admin/wheel/reset", authRequired, sameOriginRequired, async (req,
   if (req.body?.confirmation !== "RESET PUTARAN") return res.status(400).json({ error: "Konfirmasi reset tidak valid." });
   try {
     const result = await prisma.$transaction(async tx => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261225)`;
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261226)`;
+      /* await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261225)`;
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261226)`; */
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(20261225)`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(20261226)`;
       const state = await tx.wheelState.update({ where: { id: 1 }, data: { currentRound: { increment: 1 } } });
       return { round: state.currentRound };
     }, { timeout: 30000, maxWait: 10000 });
