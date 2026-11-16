@@ -415,6 +415,66 @@ app.get("/", (_req, res) => res.redirect("/register"));
 app.get("/register", (_req, res) => res.sendFile(path.join(__dirname, "public", "register.html")));
 app.get("/success", (_req, res) => res.sendFile(path.join(__dirname, "public", "success.html")));
 app.get("/admin", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
+// Wheel Spinner: authenticated admin only. State persists in Neon PostgreSQL.
+// A dedicated advisory lock serializes draw/reset requests across serverless instances.
+app.get("/api/admin/wheel", authRequired, async (_req, res) => {
+  try {
+    const [state, guests] = await Promise.all([
+      prisma.wheelState.findUnique({ where: { id: 1 } }),
+      prisma.guest.findMany({ select: { id: true, lotteryNumber: true, fullName: true }, orderBy: { lotteryNumber: "asc" } })
+    ]);
+    if (!state) return res.status(503).json({ error: "Jalankan migration Wheel Spinner terlebih dahulu." });
+    const winners = await prisma.wheelWinner.findMany({ where: { round: state.currentRound }, orderBy: { drawnAt: "desc" } });
+    const eligible = guests.filter(g => !winners.some(w => w.guestId === g.id));
+    res.set("Cache-Control", "no-store");
+    res.json({ round: state.currentRound, registered: guests.length, remaining: eligible.length, eligible: eligible.map(g => ({ number: g.lotteryNumber, name: g.fullName })), winners: winners.map(w => ({ number: w.lotteryNumber, name: w.guestName, drawnAt: w.drawnAt })) });
+  } catch (error) { console.error("Wheel status error:", error); res.status(500).json({ error: "Gagal memuat undian. Periksa migration dan koneksi database." }); }
+});
+
+app.post("/api/admin/wheel/spin", authRequired, sameOriginRequired, async (req, res) => {
+  try {
+    /* const result = await prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261225)`;
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261226)`; */
+      const result = await prisma.$transaction(async tx => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(20261225)`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(20261226)`;
+      const state = await tx.wheelState.findUnique({ where: { id: 1 } });
+      if (!state) throw new Error("WHEEL_NOT_READY");
+      // Pick one registered guest who has not won in this round.
+      const rows = await tx.$queryRaw`
+        SELECT g."id", g."lotteryNumber", g."fullName" FROM "Guest" g
+        WHERE NOT EXISTS (SELECT 1 FROM "WheelWinner" w WHERE w."round" = ${state.currentRound} AND w."guestId" = g."id")
+        ORDER BY random() LIMIT 1
+      `;
+      if (!rows.length) return null;
+      const selected = rows[0];
+      const winner = await tx.wheelWinner.create({ data: { guestId: selected.id, lotteryNumber: selected.lotteryNumber, guestName: selected.fullName, round: state.currentRound } });
+      return { number: winner.lotteryNumber, name: winner.guestName, round: state.currentRound };
+    }, { timeout: 30000, maxWait: 10000 });
+    if (!result) return res.status(409).json({ error: "Semua peserta aktif sudah terpilih. Reset putaran untuk mengulang." });
+    res.set("Cache-Control", "no-store"); res.json(result);
+  } catch (error) { console.error("Wheel spin error:", error); res.status(500).json({ error: "Gagal mengundi. Silakan coba kembali." }); }
+});
+
+app.post("/api/admin/wheel/reset", authRequired, sameOriginRequired, async (req, res) => {
+  if (req.body?.confirmation !== "RESET PUTARAN") return res.status(400).json({ error: "Konfirmasi reset tidak valid." });
+  try {
+    const result = await prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261225)`;
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(20261226)`;
+      const state = await tx.wheelState.update({ where: { id: 1 }, data: { currentRound: { increment: 1 } } });
+      return { round: state.currentRound };
+    }, { timeout: 30000, maxWait: 10000 });
+    console.info("Wheel round reset", { admin: req.admin.username, round: result.round });
+    res.json({ success: true, ...result });
+  } catch (error) { console.error("Wheel reset error:", error); res.status(500).json({ error: "Gagal reset putaran." }); }
+});
+
+// Wheel Spinner Page
+app.get("/wheel", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "wheel.html"));
+});
 
 app.use((err, _req, res, _next) => {
   console.error(err);

@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model LotteryNumber {
+  number     Int      @id
+  isUsed     Boolean  @default(false)
+  assignedAt DateTime?
+  guest      Guest?
+}
+
+model Guest {
+  id                     String   @id @default(uuid())
+  lotteryNumber          Int      @unique
+  fullName               String
+  phoneNumber            String
+  address                String
+  mentorName             String?
+  churchName             String?
+  informationSource      String?
+  informationSourceOther String?
+  submissionToken        String   @unique
+  deviceId               String?  @unique
+  registeredAt           DateTime @default(now())
+  lottery                 LotteryNumber @relation(fields: [lotteryNumber], references: [number])
+
+  @@index([fullName])
+  @@index([phoneNumber])
+  @@index([registeredAt])
+}

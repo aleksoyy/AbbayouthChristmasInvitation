@@ -40,3 +40,21 @@ model Guest {
   @@index([phoneNumber])
   @@index([registeredAt])
 }
+
+// Pemenang undian yang sudah ditarik. Hanya satu kali per ronde.
+model WheelWinner {
+  id            String   @id @default(uuid())
+  guestId       String
+  lotteryNumber Int
+  guestName     String
+  round         Int
+  drawnAt       DateTime @default(now())
+
+  @@unique([round, guestId])
+  @@index([round, drawnAt])
+}
+
+model WheelState {
+  id           Int      @id @default(1)
+  currentRound Int      @default(1)
+}

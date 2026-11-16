@@ -72,7 +72,7 @@ const loginLimiter = rateLimit({
 const registrationSchema = z.object({
   fullName: z.string().trim().min(2).max(150),
   phoneNumber: z.string().trim().min(8).max(20).regex(/^(?:\+62|62|0)[0-9]{7,15}$/),
-  address: z.string().trim().min(3).max(1000),
+  address: z.string().trim().max(1000).optional().default(""),
   mentorName: z.string().trim().max(150).optional().default(""),
   churchName: z.string().trim().max(200).optional().default(""),
   informationSource: z.enum(["Instagram", "TikTok", "WhatsApp", "Teman / Keluarga", "Gereja", "Undangan", "Lainnya"]).optional().or(z.literal("")),
@@ -415,6 +415,10 @@ app.get("/", (_req, res) => res.redirect("/register"));
 app.get("/register", (_req, res) => res.sendFile(path.join(__dirname, "public", "register.html")));
 app.get("/success", (_req, res) => res.sendFile(path.join(__dirname, "public", "success.html")));
 app.get("/admin", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
+// Wheel Spinner Page
+app.get("/wheel", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "wheel.html"));
+});
 
 app.use((err, _req, res, _next) => {
   console.error(err);
